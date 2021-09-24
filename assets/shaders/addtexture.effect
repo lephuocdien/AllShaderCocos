@@ -1,0 +1,62 @@
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes: # 每个 Pass 是一个渲染流程
+    - vert: vert:vert # 定义顶点着色器
+      frag: frag:frag # 定义片元着色器
+      properties:  &props # 输入的属性，可以在编辑器的材质面板中编辑值，相当于 OpenGL 的 Uniform
+        mainColor: { value: [1, 1, 1, 1], editor: { type: color } }
+        mainTexture:    { value: white }
+        mainTexture2:    { value: white }
+      
+       
+        
+}%
+
+// 顶点着色器 glsl
+CCProgram vert %{
+  precision highp float;
+
+  // 引入宏
+  #include <input-standard>
+  #include <cc-global>
+  #include <cc-local-batch>
+
+  out vec2 v_uv;
+
+  vec4 vert () {
+    StandardVertInput In;
+    CCVertInput(In);
+    v_uv = a_texCoord;
+    mat4 matWorld, matWorldIT;
+    CCGetWorldMatrixFull(matWorld, matWorldIT);
+
+    vec4 pos = matWorld * In.position;
+    vec3 v_normal = normalize((matWorldIT * vec4(In.normal, 0.0)).xyz);
+    
+   
+
+    return cc_matProj * (cc_matView * matWorld) * pos;
+  }
+}%
+
+// 片元着色器 glsl
+CCProgram frag %{
+  precision highp float;
+  #include <output>
+
+ 
+
+  uniform Constant {
+    vec4 mainColor; // properties 中定义的属性
+  };
+  in vec2 v_uv;
+  uniform sampler2D mainTexture;
+  uniform sampler2D mainTexture2;
+
+  vec4 frag () {
+    vec4 col = mix( texture(mainTexture, v_uv), texture(mainTexture2,v_uv),0.5) ;
+ 
+    return CCFragOutput(col);
+  }
+}%
