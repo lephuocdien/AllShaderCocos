@@ -30,7 +30,7 @@ CCEffect %{
           value: 0.002,
           editor: {
             tooltip: "描边宽度",
-            range: [0.0, 1.0]
+            range: [0.5, 1.0]
           }
         }   
         isUseOutline: { value: 0 }
@@ -138,7 +138,7 @@ CCProgram sprite-fs %{
         {
           vec4 color_dest = outlineColor * getBgAlpha();
           vec4 color_src = o;
-          o= color_src * color_src.a + color_dest * (1.0 - color_src.a);
+          o= o + color_dest*(1.0 - o.a);
         }
     #endif
     return o;
