@@ -80,6 +80,32 @@ CCProgram sprite-fs %{
     float c = smoothstep(r,r-rblur,len);
     return c;
   }
+  float Smilely(vec2 uv , vec2 p, float size)
+  {
+      uv /= size;
+      float mask = Circle(uv,vec2(0.0,0.0) ,0.4,0.01);
+      mask -= Circle(uv,vec2(-0.13,0.1) ,0.07,0.01);
+      mask -= Circle(uv,vec2(0.13,0.1) ,0.07,0.01);
+
+      float mouth = Circle(uv,vec2(0.0,0.0) ,0.3,0.02);
+      mouth -= Circle(uv,vec2(0.0,0.1) ,0.3,0.02);
+
+      mask -=mouth;
+      return mask;
+  }
+  float Band(float t , float start, float end , float blur)
+  {
+     float step1  = smoothstep(start- blur,start + blur,t);
+     float step2  = smoothstep(end+ blur,end - blur,t);
+     return step1 * step2;
+  }
+  float Rect(vec2 uv , float left,float right, float top,float bottom, float blur)
+  {
+    float band1 = Band(uv.x,left,right,blur);
+    float band2 = Band(uv.y,top,bottom,blur);
+
+    return band2 * band1;
+  }
   vec4 frag () 
   {
     vec4 o = vec4(1, 1, 1, 1);
@@ -90,20 +116,12 @@ CCProgram sprite-fs %{
         o.r = o.g = o.b = gray;
       #endif
     #endif
-      vec3 col= vec3(0.0);
-      vec2 uv = uv0 - vec2(0.5,0.5) ;
+    vec3 color= vec3(0.0);
+    vec2 uv = uv0 - vec2(0.5,0.5) ;
      
-      float mask = Circle(uv,vec2(0.0,0.0) ,0.4,0.05);
-      mask -= Circle(uv,vec2(-0.13,0.1) ,0.07,0.01);
-      mask -= Circle(uv,vec2(0.13,0.1) ,0.07,0.01);
-
-      float mouth = Circle(uv,vec2(0.0,0.0) ,0.3,0.02);
-      mouth -= Circle(uv,vec2(0.0,0.1) ,0.3,0.02);
-
-     mask -=mouth;
-      col = vec3(1.0,1.0,0.0)*mask;
-
-    o =vec4(vec3(col),1.0);
+    float mask =Rect(uv,-0.2,0.2,-0.3,0.3,0.001);
+    color = vec3(1.0,0.0,1.0) * mask;
+    o =vec4(vec3(color),1.0);
     ALPHA_TEST(o);
     return o;
   }
